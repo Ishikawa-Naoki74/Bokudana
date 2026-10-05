@@ -40,7 +40,17 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const canSubmit = email.length > 0 && password.length > 0;
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
+
+  const canSubmit = needsCode
+    ? code.length > 0
+    : email.length > 0 && password.length > 0;
+
+  function toErrorMessage(e: unknown, fallback: string) {
+    const err = e as { errors?: Array<{ message: string }> };
+    return err.errors?.[0]?.message ?? fallback;
+  }
 
   async function handleLogin() {
     if (!isLoaded || !canSubmit) return;
@@ -48,10 +58,46 @@ export default function LoginScreen() {
     setError('');
     try {
       const result = await signIn.create({ identifier: email, password });
-      await setActive({ session: result.createdSessionId });
+      const status: string = result.status ?? '';
+
+      if (status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        return;
+      }
+
+      // 新しい端末などで追加の確認（メールコード）を求められた場合
+      if (status === 'needs_second_factor' || status === 'needs_client_trust') {
+        const hasEmailCode = result.supportedSecondFactors?.some(
+          (f) => f.strategy === 'email_code',
+        );
+        if (hasEmailCode) {
+          await signIn.prepareSecondFactor({ strategy: 'email_code' });
+          setNeedsCode(true);
+          return;
+        }
+      }
+
+      setError(`ログインを完了できませんでした（状態: ${status || '不明'}）`);
     } catch (e: unknown) {
-      const err = e as { errors?: Array<{ message: string }> };
-      setError(err.errors?.[0]?.message ?? 'メールアドレスまたはパスワードが正しくありません');
+      setError(toErrorMessage(e, 'メールアドレスまたはパスワードが正しくありません'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyCode() {
+    if (!isLoaded || !canSubmit) return;
+    setLoading(true);
+    setError('');
+    try {
+      const result = await signIn.attemptSecondFactor({ strategy: 'email_code', code });
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        return;
+      }
+      setError(`確認を完了できませんでした（状態: ${result.status ?? '不明'}）`);
+    } catch (e: unknown) {
+      setError(toErrorMessage(e, '確認コードが正しくありません'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +131,30 @@ export default function LoginScreen() {
             アカウントにログインしてください
           </Text>
 
+          {needsCode ? (
+            <>
+              <Text style={s.label}>確認コード</Text>
+              <Text style={[s.subtitle, { marginBottom: 12 }]}>
+                {email} に届いた確認コードを入力してください
+              </Text>
+              <View style={[s.inputBox, { marginBottom: 8 }]}>
+                <TextInput
+                  style={s.input}
+                  value={code}
+                  onChangeText={(t) => { setCode(t); setError(''); }}
+                  placeholder="123456"
+                  placeholderTextColor={C.slate400}
+                  keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  autoCapitalize="none"
+                />
+              </View>
+            </>
+          ) : null}
+
           {/* メール */}
+          {needsCode ? null : (
+          <>
           <Text style={s.label}>メールアドレス</Text>
           <View style={[s.inputBox, emailFocused && s.focused, { marginBottom: 16 }]}>
             <TextInput
@@ -120,6 +189,8 @@ export default function LoginScreen() {
               <Text style={s.eyeText}>{showPassword ? '隠す' : '表示'}</Text>
             </Pressable>
           </View>
+          </>
+          )}
 
           {/* エラー */}
           {error ? (
@@ -130,7 +201,7 @@ export default function LoginScreen() {
 
           {/* ログインボタン */}
           <Pressable
-            onPress={handleLogin}
+            onPress={needsCode ? handleVerifyCode : handleLogin}
             disabled={loading || !canSubmit}
             style={[
               s.ctaBtn,
@@ -140,7 +211,7 @@ export default function LoginScreen() {
           >
             {loading
               ? <ActivityIndicator color={C.white} />
-              : <Text style={s.ctaBtnText}>ログイン</Text>
+              : <Text style={s.ctaBtnText}>{needsCode ? '確認してログイン' : 'ログイン'}</Text>
             }
           </Pressable>
 
