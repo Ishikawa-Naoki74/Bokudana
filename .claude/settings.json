@@ -1,5 +1,19 @@
 {
-  "enabledPlugins": {
-    "expo@claude-plugins-official": true
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "if": "Edit(*.ts)|Edit(*.tsx)|Edit(*.js)|Write(*.ts)|Write(*.tsx)|Write(*.js)",
+            "prompt": "あなたはOWASP Top 10のセキュリティ専門家です。以下のツール操作で書き込まれたコードファイルを確認し、重大なセキュリティ問題のみチェックしてください。\n\nツール操作の詳細: $ARGUMENTS\n\n確認すべき重大なセキュリティ問題（これらのみ。軽微な問題は無視）:\n1. APIキー・パスワード・シークレットのハードコーディング（EXPO_PUBLIC_ 以外の機密情報）\n2. Clerk の Secret Key のクライアントコードへの露出（CLERK_SECRET_KEY は絶対にクライアントに含めない）\n3. 機密データの AsyncStorage への保存（expo-secure-store を使うべき箇所）\n4. Convex のサーバー関数で getUserIdentity() による認証チェックが欠落している箇所\n5. コマンドインジェクション・eval() の危険な使用\n6. Google Books API キーの EXPO_PUBLIC_ なしでの使用\n\n重大な問題が見つかった場合のみ ok: false を返し、ファイルパスと問題箇所を具体的に日本語で説明してください。問題がない場合や対象外ファイルの場合は ok: true のみ返してください。",
+            "statusMessage": "セキュリティチェック実行中...",
+            "continueOnBlock": true,
+            "timeout": 60
+          }
+        ]
+      }
+    ]
   }
 }
