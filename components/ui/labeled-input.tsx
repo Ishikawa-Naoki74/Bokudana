@@ -45,7 +45,7 @@ export function LabeledInput({
           autoCapitalize={autoCapitalize}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="flex-1 text-base text-slate-900"
+          className="flex-1 self-stretch text-base text-slate-900"
           placeholderTextColor="#94a3b8"
         />
         {secureTextEntry ? (

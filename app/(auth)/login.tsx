@@ -106,7 +106,7 @@ export default function LoginScreen() {
           <Text style={s.label}>パスワード</Text>
           <View style={[s.inputBox, passwordFocused && s.focused, { marginBottom: 8 }]}>
             <TextInput
-              style={[s.input, { flex: 1 }]}
+              style={s.input}
               value={password}
               onChangeText={(t) => { setPassword(t); setError(''); }}
               placeholder="パスワードを入力"
@@ -243,6 +243,8 @@ const s = StyleSheet.create({
     backgroundColor: C.indigoLight,
   },
   input: {
+    flex: 1,
+    alignSelf: 'stretch',
     fontSize: 15,
     color: C.slate900,
   },
