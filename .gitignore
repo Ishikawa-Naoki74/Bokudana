@@ -32,6 +32,10 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env.development
+.env.production
+.env.local
+.env
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +43,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# editor swap files
+*.swp
