@@ -1,5 +1,5 @@
 import { useSignIn } from '@clerk/clerk-expo';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -31,6 +31,7 @@ const C = {
 
 export default function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -151,11 +152,13 @@ export default function LoginScreen() {
           </View>
 
           {/* アカウント作成 */}
-          <Link href="/(auth)/signup" asChild>
-            <Pressable style={[s.subBtn, { marginBottom: 24 }]}>
-              <Text style={s.subBtnText}>新規アカウントを作成</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            role="link"
+            style={[s.subBtn, { marginBottom: 24 }]}
+            onPress={() => router.push('/(auth)/signup')}
+          >
+            <Text style={s.subBtnText}>新規アカウントを作成</Text>
+          </Pressable>
 
           <Text style={s.footer}>
             ログインすることで、利用規約とプライバシーポリシーに同意したことになります
