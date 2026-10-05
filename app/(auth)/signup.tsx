@@ -1,9 +1,9 @@
 import { useSignUp } from '@clerk/clerk-expo';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
@@ -31,8 +31,9 @@ export default function SignupScreen() {
       await signUp.create({ emailAddress: email, password });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setStep('verify');
-    } catch (e: any) {
-      setError(e.errors?.[0]?.message ?? '登録に失敗しました');
+    } catch (e: unknown) {
+      const err = e as { errors?: Array<{ message: string }> };
+      setError(err.errors?.[0]?.message ?? '登録に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -45,8 +46,9 @@ export default function SignupScreen() {
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
       await setActive({ session: result.createdSessionId });
-    } catch (e: any) {
-      setError(e.errors?.[0]?.message ?? '認証コードが正しくありません');
+    } catch (e: unknown) {
+      const err = e as { errors?: Array<{ message: string }> };
+      setError(err.errors?.[0]?.message ?? '認証コードが正しくありません');
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,7 @@ export default function SignupScreen() {
   if (step === 'verify') {
     return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView
@@ -71,7 +73,7 @@ export default function SignupScreen() {
               className="w-20 h-20 bg-white rounded-3xl items-center justify-center"
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
             >
-              <Text className="text-indigo-600 text-3xl">✉</Text>
+              <Ionicons name="mail-outline" size={32} color="#4F46E5" />
             </View>
             <View className="items-center gap-1">
               <Text className="text-white text-2xl font-bold tracking-tight">
@@ -137,7 +139,7 @@ export default function SignupScreen() {
   // ── 登録ステップ ──
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
       <ScrollView

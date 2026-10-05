@@ -4,7 +4,6 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -49,8 +48,9 @@ export default function LoginScreen() {
     try {
       const result = await signIn.create({ identifier: email, password });
       await setActive({ session: result.createdSessionId });
-    } catch (e: any) {
-      setError(e.errors?.[0]?.message ?? 'メールアドレスまたはパスワードが正しくありません');
+    } catch (e: unknown) {
+      const err = e as { errors?: Array<{ message: string }> };
+      setError(err.errors?.[0]?.message ?? 'メールアドレスまたはパスワードが正しくありません');
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: C.indigo }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -182,11 +182,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
+    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.2)',
   },
   iconText: {
     fontSize: 28,
@@ -274,11 +270,7 @@ const s = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: C.orange,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
+    boxShadow: '0 4px 8px rgba(249, 115, 22, 0.35)',
   },
   ctaBtnText: {
     fontSize: 16,
