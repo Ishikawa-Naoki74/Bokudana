@@ -46,3 +46,6 @@ yarn-error.*
 
 # editor swap files
 *.swp
+
+# macOS
+.DS_Store
